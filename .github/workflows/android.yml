@@ -1,0 +1,96 @@
+name: Supermodel Android (experimental)
+
+# An APK of Supermodel (Sega Model 3) for Android ARM64: Supermodel with the
+# patch and the build of supermodel-ios (at the commit of
+# supermodel-ios.version), SDL2 and SDL2_net built from their sources.
+on:
+  push:
+    branches: ['**']
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One at a time: they publish the same release
+concurrency:
+  group: supermodel-android
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # The version: 0.1.N, N the changes of the app, not those of the README
+      - name: The version
+        run: |
+          n=$(git rev-list --count HEAD -- app fetch-supermodel.sh supermodel-ios.version build.gradle.kts settings.gradle.kts)
+          echo "SUPERMODEL_ANDROID_VERSION=0.1.$n" >> "$GITHUB_ENV"
+          echo "version 0.1.$n"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Supermodel's sources, patched (supermodel-ios), SDL2 and SDL2_net
+        run: |
+          ./fetch-supermodel.sh
+          echo "SUPERMODEL_COMMIT=$(cat supermodel-ios/supermodel.version)" >> "$GITHUB_ENV"
+          echo "SUPERMODEL_IOS_COMMIT=$(cat supermodel-ios.version)" >> "$GITHUB_ENV"
+      - name: Signing key (secrets SUPERMODEL_KEYSTORE_B64, SUPERMODEL_KEYSTORE_PASSWORD)
+        env:
+          KEYSTORE_B64: ${{ secrets.SUPERMODEL_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/supermodel-release.p12"
+            echo "SUPERMODEL_KEYSTORE=$RUNNER_TEMP/supermodel-release.p12" >> "$GITHUB_ENV"
+            echo "Signed with the key of the secrets"
+          else
+            echo "::warning::No SUPERMODEL_KEYSTORE_B64 secret: the APK is signed with a new debug key, and will not install over the last one"
+          fi
+      - name: Build the APK
+        env:
+          SUPERMODEL_KEYSTORE_PASSWORD: ${{ secrets.SUPERMODEL_KEYSTORE_PASSWORD }}
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          ./gradlew --no-daemon --stacktrace assembleRelease
+      - name: On failure, every native error at once
+        if: failure()
+        run: |
+          ndk=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+          cmake -S supermodel-ios -B diag -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$ndk/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=26 -DANDROID_STL=c++_shared > /dev/null
+          ninja -C diag -k 0 supermodel 2>&1 | grep -E 'error:|undefined|FAILED' | sort -u | head -150
+      - name: The APK
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk supermodel.apk
+          unzip -l supermodel.apk | grep -E 'lib/arm64-v8a/|assets/supermodel/Config/' | head -20
+          ls -l supermodel.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: supermodel-android
+          path: supermodel.apk
+      # Published from main alone: a branch's APK is in its artifact
+      - name: Published (release "supermodel-apk")
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          repo="$GITHUB_REPOSITORY"
+          for id in $(gh api "repos/$repo/releases" --paginate --jq '.[] | select(.tag_name == "supermodel-apk") | .id'); do
+            gh api -X DELETE "repos/$repo/releases/$id"
+          done
+          gh api -X DELETE "repos/$repo/git/refs/tags/supermodel-apk" || true
+          gh api "repos/$repo/git/refs" -f ref=refs/tags/supermodel-apk -f sha="$GITHUB_SHA" >/dev/null
+          for i in $(seq 1 30); do
+            gh api "repos/$repo/tags" --jq '.[].name' | grep -qx supermodel-apk && break
+            sleep 2
+          done
+          gh release create supermodel-apk supermodel.apk --target "$GITHUB_SHA" --prerelease \
+            --title "Supermodel Android ${SUPERMODEL_ANDROID_VERSION} (experimental)" \
+            --notes "Experimental build of Supermodel (Sega Model 3 emulator) for Android ARM64 (Android 8+), from Supermodel ${SUPERMODEL_COMMIT::7}, supermodel-ios ${SUPERMODEL_IOS_COMMIT::7} and supermodel-android ${GITHUB_SHA::7}. Install supermodel.apk, allow access to all files, put the games (MAME-style .zip sets) in the Supermodel/ROMs folder of the phone and start the app again. A game controller is needed to play (no touch controls yet). The PowerPC is interpreted (no JIT)."
+          test "$(gh release view supermodel-apk --json isDraft --jq .isDraft)" = false
