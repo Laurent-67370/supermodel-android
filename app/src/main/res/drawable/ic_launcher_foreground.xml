@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A "3" of three bars and a stroke, in the safe zone of the icon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#3D8BFF"
+        android:pathData="M38,34 L70,34 L70,74 L38,74 L38,67 L62,67 L62,57 L44,57 L44,51 L62,51 L62,41 L38,41 Z" />
+</vector>
