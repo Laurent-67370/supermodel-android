@@ -11,8 +11,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
-import org.libsdl.app.SDLActivity;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +27,13 @@ import java.util.Set;
  *   1 2 3 4 the keys A S D F  (Virtua Fighter 3: punch, kick, guard,
  *                              escape; driving: view change, gears...)
  *   COIN    3                 START 1
+ *   MENU    the app's menu (SupermodelActivity): back to the list of the
+ *           games, saved states, pause, test menu...
  *
- * A touch that falls on none of them goes on to the game (SDL).
+ * A finger can slide from a button to another. Each press is held long
+ * enough for Supermodel to see it (Keys). A touch that falls on none of
+ * them goes on to the game (SDL). When the controls are hidden (a game
+ * controller played, or hidden from the menu), MENU alone stays.
  */
 public class TouchControls extends View {
     private static final int UP = KeyEvent.KEYCODE_DPAD_UP;
@@ -59,7 +62,17 @@ public class TouchControls extends View {
         }
     }
 
+    /** What MENU opens */
+    interface Listener {
+        void onMenu();
+    }
+
     private final List<Button> buttons = new ArrayList<>();
+    private final Button menu = new Button("MENU", 0, true);
+    private final Keys keys = new Keys();
+    private Listener listener;
+    /** MENU alone */
+    private boolean minimal;
     private float stickX, stickY, stickRadius;
     /** What each finger holds: a Button, or this (the stick) */
     private final SparseArray<Object> held = new SparseArray<>();
@@ -82,6 +95,7 @@ public class TouchControls extends View {
         buttons.add(new Button("4", KeyEvent.KEYCODE_F, false));
         buttons.add(new Button("COIN", KeyEvent.KEYCODE_3, true));
         buttons.add(new Button("START", KeyEvent.KEYCODE_1, true));
+        buttons.add(menu);
         stroke.setStyle(Paint.Style.STROKE);
         stroke.setStrokeWidth(2 * dp);
         text.setTextAlign(Paint.Align.CENTER);
@@ -112,6 +126,8 @@ public class TouchControls extends View {
         float s = Math.min(side * 0.04f, 20 * dp);
         place(buttons.get(4), w / 2f - s * 2.6f, margin * 0.5f + s, s);
         place(buttons.get(5), w / 2f + s * 2.6f, margin * 0.5f + s, s);
+        // MENU in the top left corner, away from the stick
+        place(menu, margin * 0.5f + s * 1.8f, margin * 0.5f + s, s);
         text.setTextSize(r * 0.9f);
     }
 
@@ -119,6 +135,27 @@ public class TouchControls extends View {
         button.x = x;
         button.y = y;
         button.radius = radius;
+    }
+
+    void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    /** MENU alone, or every control */
+    void setMinimal(boolean minimal) {
+        if (minimal != this.minimal) {
+            this.minimal = minimal;
+            releaseAll();
+        }
+    }
+
+    /** The app's own keys (the menu's): a press and its release */
+    void tap(int key) {
+        keys.tap(key);
+    }
+
+    void chord(int modifier, int key) {
+        keys.chord(modifier, key);
     }
 
     @Override
@@ -138,10 +175,34 @@ public class TouchControls extends View {
                 }
                 break;
             }
-            held.put(id, target);
+            if (action == MotionEvent.ACTION_DOWN && android.os.Build.VERSION.SDK_INT >= 30) {
+                // The touches as they come, not gathered until the next
+                // frame of the screen (up to 16 ms sooner)
+                requestUnbufferedDispatch(event);
+            }
             performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            if (target == menu) {
+                if (listener != null) {
+                    listener.onMenu();
+                }
+                break;
+            }
+            held.put(id, target);
             break;
         }
+        case MotionEvent.ACTION_MOVE:
+            // A finger on a button can slide onto another
+            for (int i = 0; i < event.getPointerCount(); i++) {
+                Object target = held.get(event.getPointerId(i));
+                if (target instanceof Button) {
+                    Button now = button(event.getX(i), event.getY(i));
+                    if (now != null && now != target && now != menu) {
+                        held.put(event.getPointerId(i), now);
+                        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                    }
+                }
+            }
+            break;
         case MotionEvent.ACTION_UP:
         case MotionEvent.ACTION_POINTER_UP:
             held.remove(id);
@@ -158,10 +219,17 @@ public class TouchControls extends View {
     }
 
     private Object hit(float x, float y) {
+        if (minimal) {
+            return menu.contains(x, y) ? menu : null;
+        }
         float dx = x - stickX, dy = y - stickY;
         if (dx * dx + dy * dy <= stickRadius * stickRadius * 1.5f) {
             return this;
         }
+        return button(x, y);
+    }
+
+    private Button button(float x, float y) {
         for (Button button : buttons) {
             if (button.contains(x, y)) {
                 return button;
@@ -196,12 +264,12 @@ public class TouchControls extends View {
         }
         for (int key : pressed) {
             if (!now.contains(key)) {
-                SDLActivity.onNativeKeyUp(key);
+                keys.release(key);
             }
         }
         for (int key : now) {
             if (!pressed.contains(key)) {
-                SDLActivity.onNativeKeyDown(key);
+                keys.press(key);
             }
         }
         pressed.clear();
@@ -234,9 +302,7 @@ public class TouchControls extends View {
     /** Everything let go (the controls hidden, the app in the background) */
     public void releaseAll() {
         held.clear();
-        for (int key : pressed) {
-            SDLActivity.onNativeKeyUp(key);
-        }
+        keys.releaseAll();
         pressed.clear();
         knobShown = false;
         invalidate();
@@ -244,6 +310,10 @@ public class TouchControls extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (minimal) {
+            drawButton(canvas, menu);
+            return;
+        }
         // The stick: its ring, its arrows, the knob under the finger
         fill.setColor(Color.argb(40, 255, 255, 255));
         canvas.drawCircle(stickX, stickY, stickRadius, fill);
@@ -257,7 +327,13 @@ public class TouchControls extends View {
         canvas.drawCircle(knobShown ? knobX : stickX, knobShown ? knobY : stickY, stickRadius * 0.38f, fill);
 
         for (Button button : buttons) {
-            boolean down = pressed.contains(button.key);
+            drawButton(canvas, button);
+        }
+    }
+
+    private void drawButton(Canvas canvas, Button button) {
+        {
+            boolean down = button != menu && pressed.contains(button.key);
             fill.setColor(down ? Color.argb(150, 61, 139, 255) : Color.argb(60, 255, 255, 255));
             stroke.setColor(Color.argb(down ? 220 : 120, 255, 255, 255));
             if (button.small) {

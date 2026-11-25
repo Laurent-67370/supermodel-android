@@ -1,5 +1,7 @@
 package io.github.laurent67370.supermodel;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.system.ErrnoException;
@@ -25,6 +27,10 @@ public class SupermodelActivity extends SDLActivity {
     private boolean inGame;
     /** A game controller was used since the screen was last touched */
     private boolean padInUse;
+    /** The touch controls hidden from the menu (MENU alone) */
+    private boolean touchHidden;
+    /** Supermodel quit from the menu: the list of the games again */
+    private boolean backToList;
 
     @Override
     protected void onCreate(Bundle saved) {
@@ -41,7 +47,9 @@ public class SupermodelActivity extends SDLActivity {
         }
         super.onCreate(saved);
         hideBars();
+        touchHidden = prefs.getBoolean("touch_hidden", false);
         controls = new TouchControls(this);
+        controls.setListener(this::showMenu);
         controls.setVisibility(View.GONE);
         addContentView(controls, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -61,16 +69,73 @@ public class SupermodelActivity extends SDLActivity {
         }
     }
 
-    /** The touch controls in a game, unless a game controller is played */
+    /**
+     * The touch controls in a game; MENU alone while a game controller is
+     * played or when they were hidden from the menu
+     */
     private void showControls() {
         if (controls == null) {
             return;
         }
-        boolean shown = inGame && !padInUse;
-        if (!shown) {
+        if (!inGame) {
             controls.releaseAll();
         }
-        controls.setVisibility(shown ? View.VISIBLE : View.GONE);
+        controls.setMinimal(padInUse || touchHidden);
+        controls.setVisibility(inGame ? View.VISIBLE : View.GONE);
+    }
+
+    /** The menu of MENU (and of Android's back gesture): Supermodel's keys */
+    private void showMenu() {
+        final String[] items = {
+            "Retour à la liste des jeux",
+            "Sauvegarder l'état",
+            "Charger l'état",
+            "Changer d'emplacement de sauvegarde",
+            "Pause / reprendre",
+            "Redémarrer le jeu",
+            "Bouton Test (menu de la borne)",
+            "Bouton Service",
+            touchHidden ? "Afficher les commandes tactiles" : "Masquer les commandes tactiles",
+        };
+        new AlertDialog.Builder(this)
+                .setTitle("Supermodel")
+                .setItems(items, (dialog, which) -> {
+                    switch (which) {
+                    case 0:
+                        // Supermodel quits (Escape, its NVRAM saved), then
+                        // the app starts again on the list (onDestroy)
+                        backToList = true;
+                        controls.tap(KeyEvent.KEYCODE_ESCAPE);
+                        break;
+                    case 1: controls.tap(KeyEvent.KEYCODE_F5); break;
+                    case 2: controls.tap(KeyEvent.KEYCODE_F7); break;
+                    case 3: controls.tap(KeyEvent.KEYCODE_F6); break;
+                    case 4: controls.chord(KeyEvent.KEYCODE_ALT_LEFT, KeyEvent.KEYCODE_P); break;
+                    case 5: controls.chord(KeyEvent.KEYCODE_ALT_LEFT, KeyEvent.KEYCODE_R); break;
+                    case 6: controls.tap(KeyEvent.KEYCODE_6); break;
+                    case 7: controls.tap(KeyEvent.KEYCODE_5); break;
+                    case 8:
+                        touchHidden = !touchHidden;
+                        getSharedPreferences(SetupActivity.PREFS, MODE_PRIVATE).edit()
+                                .putBoolean("touch_hidden", touchHidden).apply();
+                        showControls();
+                        break;
+                    default:
+                        break;
+                    }
+                })
+                .setOnDismissListener(dialog -> hideBars())
+                .show();
+    }
+
+    /** Android's back gesture: the menu in a game, as on a cabinet's panel */
+    @Override
+    public void onBackPressed() {
+        if (inGame) {
+            showMenu();
+            return;
+        }
+        super.onBackPressed();
     }
 
     private static boolean fromPad(int source) {
@@ -149,6 +214,13 @@ public class SupermodelActivity extends SDLActivity {
         // Supermodel's native state is made for one run: the next start is a
         // new process
         if (isFinishing()) {
+            if (backToList) {
+                // A new start of the app, on the list of the games, in a
+                // new process (the old one ends below)
+                Intent intent = new Intent(this, SetupActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
             System.exit(0);
         }
     }

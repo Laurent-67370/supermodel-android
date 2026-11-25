@@ -39,11 +39,15 @@ reconstruite à chaque modification de l'app). Android 8 ou plus, ARM64.
    | stick | se déplacer | tourner ; haut accélère, bas freine |
    | 1 2 3 4 | coup de poing, de pied, garde, esquive | selon le jeu (vue...) |
 
-   Dès qu'une manette est utilisée, les commandes tactiles disparaissent ;
-   toucher l'écran les fait revenir.
-   Pour revenir à la liste, fermer l'app et la relancer (la mémoire des jeux,
-   leurs réglages du menu de service, est enregistrée quand l'app passe en
-   arrière-plan).
+   Dès qu'une manette est utilisée, les commandes tactiles disparaissent (sauf
+   MENU) ; toucher l'écran les fait revenir. Un appui, même très bref, est
+   toujours vu par le jeu, et un doigt peut glisser d'un bouton à l'autre.
+5. **MENU** (en haut à gauche, ou le geste « retour » d'Android) ouvre le
+   menu de l'app : retour à la liste des jeux, sauvegarder / charger l'état
+   (et changer d'emplacement), pause, redémarrer le jeu, boutons Test et
+   Service de la borne (son menu de réglages), masquer ou afficher les
+   commandes tactiles. La mémoire des jeux (réglages du menu de service,
+   scores) est aussi enregistrée quand l'app passe en arrière-plan.
 
 Les réglages sont dans `Supermodel/Config/Supermodel.ini` et le journal dans
 `Supermodel/Supermodel.log` (avec **ShowFrameRate** dans l'onglet Video, le
