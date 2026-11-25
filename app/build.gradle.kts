@@ -76,6 +76,11 @@ android {
 val supermodelData by tasks.registering(Sync::class) {
     from("${common}/supermodel-src/Config") { into("supermodel/Config") }
     from("${common}/supermodel-src/Assets") { into("supermodel/Assets") }
+    // And at the APK's root: on Android, SDL opens a relative path (SDL_LoadBMP
+    // of Assets/p1crosshair.bmp, the guns' crosshairs) in the APK, not in the
+    // current folder; without them Supermodel stops ("Unable to load bitmap
+    // crosshair texture")
+    from("${common}/supermodel-src/Assets") { into("Assets") }
     into(layout.buildDirectory.dir("generated/supermodelAssets"))
 }
 tasks.named("preBuild") { dependsOn(supermodelData) }
