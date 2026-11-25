@@ -11,7 +11,8 @@ iPad : le même patch de Supermodel (OpenGL ES 3.0) et la même compilation,
 repris de ce dépôt-là. Ici, il n'y a que ce qui est propre à Android :
 l'application (Java), sa compilation Gradle et la publication de l'APK.
 
-**État : première version, à essayer.**
+**État : Virtua Fighter 3 tourne à pleine vitesse (≈ 60 images/s) sur un
+Poco F6 Pro**, sans se figer (3 minutes de jeu, version 0.1.5).
 
 ## Télécharger
 
@@ -28,7 +29,18 @@ reconstruite à chaque modification de l'app). Android 8 ou plus, ARM64.
    ordinateur) dans **Supermodel/ROMs**.
 3. Relancer l'app : la liste montre les jeux trouvés ; toucher un jeu, puis
    **Load game**.
-4. Jouer avec une **manette** : il n'y a pas encore de commandes tactiles.
+4. Jouer avec les **commandes tactiles** ou une **manette**. En jeu, l'écran
+   montre un stick à gauche, quatre boutons **1 2 3 4** à droite, **COIN** et
+   **START** en haut ; ils pressent les touches du clavier de Supermodel
+   (flèches, A S D F, 3 et 1), réglables dans le menu :
+
+   | | Virtua Fighter 3 | Jeux de course |
+   |---|---|---|
+   | stick | se déplacer | tourner ; haut accélère, bas freine |
+   | 1 2 3 4 | coup de poing, de pied, garde, esquive | selon le jeu (vue...) |
+
+   Dès qu'une manette est utilisée, les commandes tactiles disparaissent ;
+   toucher l'écran les fait revenir.
    Pour revenir à la liste, fermer l'app et la relancer (la mémoire des jeux,
    leurs réglages du menu de service, est enregistrée quand l'app passe en
    arrière-plan).
