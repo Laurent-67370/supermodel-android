@@ -28,7 +28,9 @@ reconstruite à chaque modification de l'app). Android 8 ou plus, ARM64.
 2. Mettre les jeux (fichiers `.zip`, les mêmes que pour Supermodel sur
    ordinateur) dans **Supermodel/ROMs**.
 3. Relancer l'app : la liste montre les jeux trouvés ; toucher un jeu, puis
-   **Load game**.
+   **Load game**. Le menu se lit en portrait comme en paysage (il tourne avec
+   le téléphone) et défile du doigt, comme une liste d'Android ; le jeu, lui,
+   est toujours en paysage.
 4. Jouer avec les **commandes tactiles** ou une **manette**. En jeu, l'écran
    montre un stick à gauche, quatre boutons **1 2 3 4** à droite, **COIN** et
    **START** en haut ; ils pressent les touches du clavier de Supermodel
