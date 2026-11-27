@@ -32,8 +32,10 @@ public class SupermodelActivity extends SDLActivity {
     /** The touch controls' sizes and opacities, chosen from the menu */
     private static final float[] SIZES = { 0.8f, 1.0f, 1.25f };
     private static final String[] SIZE_NAMES = { "petite", "normale", "grande" };
+    private static final String[] SIZE_NAMES_EN = { "small", "normal", "large" };
     private static final float[] OPACITIES = { 0.55f, 1.0f, 1.6f };
     private static final String[] OPACITY_NAMES = { "discrètes", "normales", "très visibles" };
+    private static final String[] OPACITY_NAMES_EN = { "light", "normal", "strong" };
 
     /**
      * The game that starts, from Supermodel (SupermodelMobileGame of
@@ -107,17 +109,20 @@ public class SupermodelActivity extends SDLActivity {
     /** The menu of MENU (and of Android's back gesture): Supermodel's keys */
     private void showMenu() {
         final String[] items = {
-            "Retour à la liste des jeux",
-            "Sauvegarder l'état",
-            "Charger l'état",
-            "Changer d'emplacement de sauvegarde",
-            "Pause / reprendre",
-            "Redémarrer le jeu",
-            "Bouton Test (menu de la borne)",
-            "Bouton Service",
-            touchHidden ? "Afficher les commandes tactiles" : "Masquer les commandes tactiles",
-            "Taille des commandes : " + SIZE_NAMES[prefs().getInt("touch_size", 1)],
-            "Visibilité des commandes : " + OPACITY_NAMES[prefs().getInt("touch_opacity", 1)],
+            Lang.t("Back to the game list", "Retour à la liste des jeux"),
+            Lang.t("Save state", "Sauvegarder l'état"),
+            Lang.t("Load state", "Charger l'état"),
+            Lang.t("Change save slot", "Changer d'emplacement de sauvegarde"),
+            Lang.t("Pause / resume", "Pause / reprendre"),
+            Lang.t("Reset the game", "Redémarrer le jeu"),
+            Lang.t("Test button (the cabinet's menu)", "Bouton Test (menu de la borne)"),
+            Lang.t("Service button", "Bouton Service"),
+            touchHidden ? Lang.t("Show the touch controls", "Afficher les commandes tactiles")
+                    : Lang.t("Hide the touch controls", "Masquer les commandes tactiles"),
+            Lang.t("Controls size: " + SIZE_NAMES_EN[prefs().getInt("touch_size", 1)],
+                    "Taille des commandes : " + SIZE_NAMES[prefs().getInt("touch_size", 1)]),
+            Lang.t("Controls visibility: " + OPACITY_NAMES_EN[prefs().getInt("touch_opacity", 1)],
+                    "Visibilité des commandes : " + OPACITY_NAMES[prefs().getInt("touch_opacity", 1)]),
         };
         new AlertDialog.Builder(this)
                 .setTitle("Supermodel")

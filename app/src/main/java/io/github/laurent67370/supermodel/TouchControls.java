@@ -137,14 +137,14 @@ public class TouchControls extends View {
             buttons.add(new Button("E", KeyEvent.KEYCODE_F, false));
             break;
         case DRIVE:
-            buttons.add(new Button("GAZ", UP, false));
-            buttons.add(new Button("FREIN", DOWN, false));
-            buttons.add(new Button("VUE", KeyEvent.KEYCODE_A, false));
+            buttons.add(new Button(Lang.t("GAS", "GAZ"), UP, false));
+            buttons.add(new Button(Lang.t("BRAKE", "FREIN"), DOWN, false));
+            buttons.add(new Button(Lang.t("VIEW", "VUE"), KeyEvent.KEYCODE_A, false));
             buttons.add(new Button("V+", KeyEvent.KEYCODE_Y, false));
             buttons.add(new Button("V-", KeyEvent.KEYCODE_H, false));
             break;
         case GUN:
-            buttons.add(new Button("RECHARGER", KeyEvent.KEYCODE_S, false));
+            buttons.add(new Button(Lang.t("RELOAD", "RECHARGER"), KeyEvent.KEYCODE_S, false));
             break;
         default:
             buttons.add(new Button("1", KeyEvent.KEYCODE_A, false));

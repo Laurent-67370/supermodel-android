@@ -117,23 +117,30 @@ public class SetupActivity extends Activity {
         text.setTextColor(Color.WHITE);
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         text.setPadding(0, (int) (12 * dp), 0, (int) (12 * dp));
-        text.setText("Supermodel lit vos jeux Model 3 (fichiers .zip, les mêmes que sur ordinateur) "
+        text.setText(Lang.t("Supermodel reads your Model 3 games (.zip files, the same as on a computer) "
+                + "in the « Supermodel » folder of your phone:\n\n"
+                + "  Supermodel/ROMs     the games\n"
+                + "  Supermodel/Config   the settings (Supermodel.ini)\n"
+                + "  Supermodel/Supermodel.log   the log\n\n"
+                + "For this, Android must allow Supermodel to access all files. "
+                + "Without it, Supermodel uses its own folder:\n",
+                "Supermodel lit vos jeux Model 3 (fichiers .zip, les mêmes que sur ordinateur) "
                 + "dans le dossier « Supermodel » de votre téléphone :\n\n"
                 + "  Supermodel/ROMs     les jeux\n"
                 + "  Supermodel/Config   les réglages (Supermodel.ini)\n"
                 + "  Supermodel/Supermodel.log   le journal\n\n"
                 + "Pour cela, Android doit autoriser Supermodel à accéder à tous les fichiers. "
-                + "Sans cette autorisation, Supermodel utilise son propre dossier :\n"
+                + "Sans cette autorisation, Supermodel utilise son propre dossier :\n")
                 + appFolder().getPath());
         column.addView(text);
 
         Button allow = new Button(this);
-        allow.setText("Autoriser l'accès aux fichiers");
+        allow.setText(Lang.t("Allow access to files", "Autoriser l'accès aux fichiers"));
         allow.setOnClickListener(v -> askAccess());
         column.addView(allow);
 
         Button without = new Button(this);
-        without.setText("Continuer sans (dossier de l'application)");
+        without.setText(Lang.t("Continue without (the app's own folder)", "Continuer sans (dossier de l'application)"));
         without.setOnClickListener(v -> {
             ownFolder = true;
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean("own_folder", true).apply();
