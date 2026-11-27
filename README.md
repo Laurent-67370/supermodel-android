@@ -28,19 +28,24 @@ reconstruite à chaque modification de l'app). Android 8 ou plus, ARM64.
 2. Mettre les jeux (fichiers `.zip`, les mêmes que pour Supermodel sur
    ordinateur) dans **Supermodel/ROMs**.
 3. Relancer l'app : la liste montre les jeux trouvés ; toucher un jeu, puis
-   **Load game**. Le menu se lit en portrait comme en paysage (il tourne avec
+   **Jouer** (ou le toucher deux fois). Le menu est en français ; l'onglet
+   **Essentiel** réunit les réglages utiles sur téléphone (écran large, son,
+   vitesse), chacun avec une ligne d'explication. Le menu se lit en portrait comme en paysage (il tourne avec
    le téléphone) et défile du doigt, comme une liste d'Android ; le jeu, lui,
    est toujours en paysage.
-4. Jouer avec les **commandes tactiles** ou une **manette**. En jeu, l'écran
-   montre un stick à gauche, quatre boutons **1 2 3 4** à droite, **COIN** et
-   **START** en haut ; ils pressent les touches du clavier de Supermodel
-   (flèches, A S D F, 3 et 1), réglables dans le menu :
+4. Jouer avec les **commandes tactiles** ou une **manette**. Les commandes
+   tactiles s'adaptent au jeu ; elles pressent les touches du clavier de
+   Supermodel (réglables dans l'onglet Touches du menu) :
 
-   | | Virtua Fighter 3 | Jeux de course |
+   | Jeux | À gauche | À droite |
    |---|---|---|
-   | stick | se déplacer | tourner ; haut accélère, bas freine |
-   | 1 2 3 4 | coup de poing, de pied, garde, esquive | selon le jeu (vue...) |
+   | Combat (Virtua Fighter 3, Fighting Vipers...) | stick | **P** poing, **K** pied, **G** garde, **E** esquive |
+   | Course (Daytona USA 2, Scud Race, Sega Rally 2...) | volant (gauche, droite) | **GAZ**, **FREIN**, **VUE**, vitesses **V+** et **V-** |
+   | Pistolet (The House of the Dead, The Lost World...) | | viser et tirer en touchant l'écran, **RECHARGER** |
+   | Autres | stick | **1 2 3 4** |
 
+   **COIN** et **START** sont en haut, **MENU** en haut à gauche. Leur taille
+   et leur visibilité se règlent depuis MENU.
    Dès qu'une manette est utilisée, les commandes tactiles disparaissent (sauf
    MENU) ; toucher l'écran les fait revenir. Un appui, même très bref, est
    toujours vu par le jeu, et un doigt peut glisser d'un bouton à l'autre.

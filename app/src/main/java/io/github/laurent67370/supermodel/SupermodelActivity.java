@@ -29,6 +29,25 @@ public class SupermodelActivity extends SDLActivity {
     private boolean padInUse;
     /** The touch controls hidden from the menu (MENU alone) */
     private boolean touchHidden;
+    /** The touch controls' sizes and opacities, chosen from the menu */
+    private static final float[] SIZES = { 0.8f, 1.0f, 1.25f };
+    private static final String[] SIZE_NAMES = { "petite", "normale", "grande" };
+    private static final float[] OPACITIES = { 0.55f, 1.0f, 1.6f };
+    private static final String[] OPACITY_NAMES = { "discrètes", "normales", "très visibles" };
+
+    /**
+     * The game that starts, from Supermodel (SupermodelMobileGame of
+     * android/android_main.cpp in supermodel-ios), on its own thread: the
+     * touch controls laid out for its kind (fighting, driving, gun...)
+     */
+    public void setGameControls(String game, int inputs) {
+        runOnUiThread(() -> {
+            if (controls != null) {
+                controls.setLayout(TouchControls.layoutFor(inputs));
+            }
+        });
+    }
+
     /** Supermodel quit from the menu: the list of the games again */
     private boolean backToList;
 
@@ -50,6 +69,7 @@ public class SupermodelActivity extends SDLActivity {
         touchHidden = prefs.getBoolean("touch_hidden", false);
         controls = new TouchControls(this);
         controls.setListener(this::showMenu);
+        controls.setLook(SIZES[prefs.getInt("touch_size", 1)], OPACITIES[prefs.getInt("touch_opacity", 1)]);
         controls.setVisibility(View.GONE);
         addContentView(controls, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -96,6 +116,8 @@ public class SupermodelActivity extends SDLActivity {
             "Bouton Test (menu de la borne)",
             "Bouton Service",
             touchHidden ? "Afficher les commandes tactiles" : "Masquer les commandes tactiles",
+            "Taille des commandes : " + SIZE_NAMES[prefs().getInt("touch_size", 1)],
+            "Visibilité des commandes : " + OPACITY_NAMES[prefs().getInt("touch_opacity", 1)],
         };
         new AlertDialog.Builder(this)
                 .setTitle("Supermodel")
@@ -120,12 +142,26 @@ public class SupermodelActivity extends SDLActivity {
                                 .putBoolean("touch_hidden", touchHidden).apply();
                         showControls();
                         break;
+                    case 9:
+                    case 10: {
+                        // The next size, or opacity, in turn
+                        String key = which == 9 ? "touch_size" : "touch_opacity";
+                        int next = (prefs().getInt(key, 1) + 1) % 3;
+                        prefs().edit().putInt(key, next).apply();
+                        controls.setLook(SIZES[prefs().getInt("touch_size", 1)],
+                                OPACITIES[prefs().getInt("touch_opacity", 1)]);
+                        break;
+                    }
                     default:
                         break;
                     }
                 })
                 .setOnDismissListener(dialog -> hideBars())
                 .show();
+    }
+
+    private SharedPreferences prefs() {
+        return getSharedPreferences(SetupActivity.PREFS, MODE_PRIVATE);
     }
 
     /** Android's back gesture: the menu in a game, as on a cabinet's panel */
