@@ -92,5 +92,5 @@ jobs:
           done
           gh release create supermodel-apk supermodel.apk --target "$GITHUB_SHA" --prerelease \
             --title "Supermodel Android ${SUPERMODEL_ANDROID_VERSION} (experimental)" \
-            --notes "Experimental build of Supermodel (Sega Model 3 emulator) for Android ARM64 (Android 8+), from Supermodel ${SUPERMODEL_COMMIT::7}, supermodel-ios ${SUPERMODEL_IOS_COMMIT::7} and supermodel-android ${GITHUB_SHA::7}. Install supermodel.apk, allow access to all files, put the games (MAME-style .zip sets) in the Supermodel/ROMs folder of the phone and start the app again. A game controller is needed to play (no touch controls yet). The PowerPC is interpreted (no JIT)."
+            --notes "Experimental build of Supermodel (Sega Model 3 emulator) for Android ARM64 (Android 8+), from Supermodel ${SUPERMODEL_COMMIT::7}, supermodel-ios ${SUPERMODEL_IOS_COMMIT::7} and supermodel-android ${GITHUB_SHA::7}. Install supermodel.apk, allow access to all files, put the games (MAME-style .zip sets) in the Supermodel/ROMs folder of the phone and start the app again. Play with the touch controls or a game controller; MENU (top left) goes back to the list of the games. The PowerPC is interpreted (no JIT)."
           test "$(gh release view supermodel-apk --json isDraft --jq .isDraft)" = false
